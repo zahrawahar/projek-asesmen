@@ -54,6 +54,8 @@ $cek_siswa = mysqli_query($conn, "SELECT * FROM siswas WHERE id_walikelas = '$id
 $jumlah_siswa = mysqli_num_rows($cek_siswa);
 
 $tgl_hari_ini = date('Y-m-d');
+
+// --- QUERY LAPORAN PEMBINA HARI INI ---
 $query_laporan = "SELECT a.status, a.keterangan, s.nama 
                   FROM absensi a 
                   JOIN siswas s ON a.id_siswa = s.id 
@@ -74,8 +76,8 @@ $jml_laporan = mysqli_num_rows($res_laporan);
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
-    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+
     <style>
         :root {
             --primary: #064e3b;
@@ -162,11 +164,6 @@ $jml_laporan = mysqli_num_rows($res_laporan);
             cursor: pointer;
         }
 
-        .stat-card:hover {
-            transform: translateY(-5px);
-            border-color: var(--border-color);
-        }
-
         .icon-box {
             width: 70px;
             height: 70px;
@@ -177,9 +174,20 @@ $jml_laporan = mysqli_num_rows($res_laporan);
             font-size: 2rem;
         }
 
-        .green-box { background: #ecfdf5; color: var(--accent); }
-        .gold-box { background: #fefce8; color: var(--gold); }
-        .blue-box { background: #eff6ff; color: #3b82f6; }
+        .green-box {
+            background: #ecfdf5;
+            color: var(--accent);
+        }
+
+        .gold-box {
+            background: #fefce8;
+            color: var(--gold);
+        }
+
+        .blue-box {
+            background: #eff6ff;
+            color: #3b82f6;
+        }
 
         .main-card {
             background: white;
@@ -211,35 +219,113 @@ $jml_laporan = mysqli_num_rows($res_laporan);
             cursor: pointer;
             box-shadow: 0 10px 20px rgba(6, 78, 59, 0.2);
             display: block;
+            transition: 0.3s;
         }
 
-        table { width: 100%; border-collapse: collapse; border: 2px solid var(--border-color); }
-        th { background: #f1f5f9; text-align: left; padding: 18px; color: var(--primary); font-size: 0.85rem; text-transform: uppercase; font-weight: 800; border: 2px solid var(--border-color); }
-        td { padding: 15px 18px; border: 2px solid var(--border-color); font-weight: 600; color: #334155; }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            border: 2px solid var(--border-color);
+        }
 
-        .hidden { display: none !important; }
+        th {
+            background: #f1f5f9;
+            text-align: left;
+            padding: 18px;
+            color: var(--primary);
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            font-weight: 800;
+            border: 2px solid var(--border-color);
+        }
 
-        /* Custom SweetAlert Styles */
-        .swal2-modern-round { border-radius: 30px !important; }
-        .btn-confirm-gg { border-radius: 15px !important; padding: 12px 25px !important; font-weight: 700 !important; box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3) !important; }
-        .btn-cancel-gg { border-radius: 15px !important; padding: 12px 25px !important; font-weight: 700 !important; }
+        td {
+            padding: 15px 18px;
+            border: 2px solid var(--border-color);
+            font-weight: 600;
+            color: #334155;
+        }
 
-        /* Radio Design */
-        .radio-tile-group { display: flex; gap: 10px; justify-content: center; }
-        .radio-label { width: 42px; height: 42px; display: flex; align-items: center; justify-content: center; border-radius: 12px; border: 2px solid var(--border-color); font-weight: 800; cursor: pointer; transition: 0.2s; }
-        input[type="radio"]:checked+label { color: white; transform: scale(1.1); }
-        .radio-h:checked+label { background: var(--accent); border-color: var(--accent); }
-        .radio-s:checked+label { background: var(--gold); border-color: var(--gold); }
-        .radio-i:checked+label { background: #3b82f6; border-color: #3b82f6; }
-        .radio-a:checked+label { background: var(--danger); border-color: var(--danger); }
+        .hidden {
+            display: none !important;
+        }
 
-        /* MODAL */
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.6); display: flex; justify-content: center; align-items: center; z-index: 1000; backdrop-filter: blur(4px); }
-        .modal-content { width: 90%; max-width: 600px; max-height: 85vh; overflow-y: auto; animation: slideUp 0.3s ease-out; }
+        .radio-tile-group {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .radio-label {
+            width: 42px;
+            height: 42px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 12px;
+            border: 2px solid var(--border-color);
+            font-weight: 800;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        input[type="radio"]:checked+label {
+            color: white;
+            transform: scale(1.1);
+        }
+
+        .radio-h:checked+label {
+            background: var(--accent);
+            border-color: var(--accent);
+        }
+
+        .radio-s:checked+label {
+            background: var(--gold);
+            border-color: var(--gold);
+        }
+
+        .radio-i:checked+label {
+            background: #3b82f6;
+            border-color: #3b82f6;
+        }
+
+        .radio-a:checked+label {
+            background: var(--danger);
+            border-color: var(--danger);
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            backdrop-filter: blur(4px);
+        }
+
+        .modal-content {
+            width: 90%;
+            max-width: 600px;
+            max-height: 85vh;
+            overflow-y: auto;
+            animation: slideUp 0.3s ease-out;
+        }
 
         @keyframes slideUp {
-            from { transform: translateY(50px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
+            from {
+                transform: translateY(50px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
         }
     </style>
 </head>
@@ -271,7 +357,6 @@ $jml_laporan = mysqli_num_rows($res_laporan);
                     <p>Total Siswa</p>
                 </div>
             </div>
-
             <div class="stat-card" onclick="toggleLaporan()" style="border: 2px solid var(--accent);">
                 <div class="icon-box green-box"><i class="fas fa-bullhorn"></i></div>
                 <div class="stat-info">
@@ -279,67 +364,43 @@ $jml_laporan = mysqli_num_rows($res_laporan);
                     <p>Dari Pembina</p>
                 </div>
             </div>
-
             <div class="stat-card" onclick="toggleAturSiswa()" style="border: 2px solid var(--gold);">
                 <div class="icon-box gold-box"><i class="fas fa-user-plus"></i></div>
                 <div class="stat-info">
                     <h3>Atur Siswa</h3>
-                    <p>Tambah Murid Baru</p>
+                    <p>Kelola Data</p>
                 </div>
             </div>
         </div>
 
-        <div id="sectionAturSiswa" class="main-card hidden" style="border-left: 10px solid var(--gold); animation: slideUp 0.4s ease;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
-                <h3 style="margin:0;"><i class="fas fa-plus-circle"></i> Kelola Data Siswa</h3>
-                <button onclick="toggleAturSiswa()" style="background:#fff1f2; border:none; color:var(--danger); font-weight:800; padding:8px 15px; border-radius:10px; cursor:pointer;">Tutup</button>
-            </div>
-
+        <div id="sectionAturSiswa" class="main-card hidden" style="border-left: 10px solid var(--gold);">
+            <h3>Tambah Siswa Massal</h3>
             <form method="POST">
-                <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap:20px; margin-bottom:20px;">
-                    <div>
-                        <label style="display:block; font-weight:700; margin-bottom:8px;">Kelas</label>
-                        <select name="kelas" required class="search-box">
-                            <option value="">Pilih Kelas</option>
-                            <option value="10">10</option>
-                            <option value="11">11</option>
-                            <option value="12">12</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label style="display:block; font-weight:700; margin-bottom:8px;">Jurusan</label>
-                        <select name="jurusan" required class="search-box">
-                            <option value="">Pilih Jurusan</option>
-                            <option value="PPLG">PPLG</option>
-                            <option value="DKV">DKV</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label style="display:block; font-weight:700; margin-bottom:8px;">No. Kelas</label>
-                        <select name="nomor_kelas" required class="search-box">
-                            <option value="">Pilih No</option>
-                            <?php for ($i = 1; $i <= 3; $i++): ?>
-                                <option value="<?= $i; ?>"><?= $i; ?></option>
-                            <?php endfor; ?>
-                        </select>
-                    </div>
+                <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap:15px; margin-bottom:15px;">
+                    <select name="kelas" required class="search-box">
+                        <option value="">Kelas</option>
+                        <option value="10">10</option>
+                        <option value="11">11</option>
+                        <option value="12">12</option>
+                    </select>
+                    <select name="jurusan" required class="search-box">
+                        <option value="">Jurusan</option>
+                        <option value="PPLG">PPLG</option>
+                        <option value="DKV">DKV</option>
+                    </select>
+                    <select name="nomor_kelas" required class="search-box">
+                        <option value="">No</option><?php for ($i = 1; $i <= 3; $i++) echo "<option value='$i'>$i</option>"; ?>
+                    </select>
                 </div>
-
-                <div style="margin-bottom:20px;">
-                    <label style="display:block; font-weight:700; margin-bottom:8px;">Nama Siswa (Gunakan baris baru untuk banyak siswa)</label>
-                    <textarea name="nama_massal" placeholder="Contoh:&#10;Ahmad Fauzi&#10;Budi Santoso" rows="5" class="search-box" style="height:auto;"></textarea>
-                </div>
-
-                <button type="submit" name="proses_tambah_massal" class="btn-save" style="background:var(--gold); color:#000; margin:0;">
-                    <i class="fas fa-save"></i> Simpan Data Siswa
-                </button>
+                <textarea name="nama_massal" placeholder="Nama siswa per baris..." rows="4" class="search-box" style="height:auto; margin-bottom:15px;"></textarea>
+                <button type="submit" name="proses_tambah_massal" class="btn-save" style="background:var(--gold); color:#000;">Simpan Data Siswa</button>
             </form>
         </div>
 
         <div class="main-card">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:30px; border-bottom:2px solid var(--border-color); padding-bottom:15px;">
-                <h3><i class="fas fa-list-ol"></i> Daftar Presensi Siswa</h3>
-                <input type="text" id="searchInput" onkeyup="searchTable()" class="search-box" style="width:250px;" placeholder="Cari nama...">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                <h3><i class="fas fa-list-ol"></i> Daftar Absensi</h3>
+                <input type="text" id="searchInput" onkeyup="searchTable()" class="search-box" style="width:200px;" placeholder="Cari nama...">
             </div>
 
             <form action="simpan_absen.php" method="POST">
@@ -347,129 +408,120 @@ $jml_laporan = mysqli_num_rows($res_laporan);
                     <table id="siswaTable">
                         <thead>
                             <tr>
-                                <th style="width:50px; text-align:center;">No</th>
+                                <th style="width:40px; text-align:center;">No</th>
                                 <th>Nama Lengkap</th>
                                 <th style="text-align:center;">Kehadiran</th>
-                                <th style="text-align:right;">Aksi</th>
+                                <th style="width:50px; text-align:right;">Aksi</th>
                             </tr>
                         </thead>
                         <tbody>
                             <?php
                             $no = 1;
+                            $riwayat_data = [];
                             mysqli_data_seek($cek_siswa, 0);
                             while ($s = mysqli_fetch_assoc($cek_siswa)):
                                 $id_s = $s['id'];
                                 $cek_lp = mysqli_query($conn, "SELECT status FROM absensi WHERE id_siswa = '$id_s' AND tanggal = '$tgl_hari_ini'");
                                 $data_lp = mysqli_fetch_assoc($cek_lp);
                                 $status_final = ($data_lp) ? strtolower($data_lp['status']) : 'hadir';
+
+                                // Mengambil data riwayat
+                                $q_r = mysqli_query($conn, "SELECT status, tanggal FROM absensi WHERE id_siswa = '$id_s' AND status != 'hadir' ORDER BY tanggal DESC LIMIT 5");
+                                $riwayat_data[$s['nama']] = mysqli_fetch_all($q_r, MYSQLI_ASSOC);
                             ?>
                                 <tr>
                                     <td align="center"><?= $no++; ?></td>
-                                    <td><?= htmlspecialchars($s['nama']); ?></td>
+                                    <td><b style="color:var(--primary)"><?= htmlspecialchars($s['nama']); ?></b></td>
                                     <td>
                                         <div class="radio-tile-group">
-                                            <input type="radio" class="radio-h hidden" id="h_<?= $id_s; ?>" name="absen[<?= $id_s; ?>]" value="hadir" <?= ($status_final == 'hadir') ? 'checked' : ''; ?>>
-                                            <label for="h_<?= $id_s; ?>" class="radio-label">H</label>
-
-                                            <input type="radio" class="radio-s hidden" id="s_<?= $id_s; ?>" name="absen[<?= $id_s; ?>]" value="sakit" <?= ($status_final == 'sakit') ? 'checked' : ''; ?>>
-                                            <label for="s_<?= $id_s; ?>" class="radio-label">S</label>
-
-                                            <input type="radio" class="radio-i hidden" id="i_<?= $id_s; ?>" name="absen[<?= $id_s; ?>]" value="izin" <?= ($status_final == 'izin') ? 'checked' : ''; ?>>
-                                            <label for="i_<?= $id_s; ?>" class="radio-label">I</label>
-
-                                            <input type="radio" class="radio-a hidden" id="a_<?= $id_s; ?>" name="absen[<?= $id_s; ?>]" value="alfa" <?= ($status_final == 'alfa') ? 'checked' : ''; ?>>
-                                            <label for="a_<?= $id_s; ?>" class="radio-label">A</label>
+                                            <input type="radio" class="radio-h hidden" id="h_<?= $id_s; ?>" name="absen[<?= $id_s; ?>]" value="hadir" <?= ($status_final == 'hadir') ? 'checked' : ''; ?>><label for="h_<?= $id_s; ?>" class="radio-label">H</label>
+                                            <input type="radio" class="radio-s hidden" id="s_<?= $id_s; ?>" name="absen[<?= $id_s; ?>]" value="sakit" <?= ($status_final == 'sakit') ? 'checked' : ''; ?>><label for="s_<?= $id_s; ?>" class="radio-label">S</label>
+                                            <input type="radio" class="radio-i hidden" id="i_<?= $id_s; ?>" name="absen[<?= $id_s; ?>]" value="izin" <?= ($status_final == 'izin') ? 'checked' : ''; ?>><label for="i_<?= $id_s; ?>" class="radio-label">I</label>
+                                            <input type="radio" class="radio-a hidden" id="a_<?= $id_s; ?>" name="absen[<?= $id_s; ?>]" value="alfa" <?= ($status_final == 'alfa') ? 'checked' : ''; ?>><label for="a_<?= $id_s; ?>" class="radio-label">A</label>
                                         </div>
                                     </td>
                                     <td align="right">
-                                        <button type="button" onclick="hapusSiswa(<?= $id_s; ?>)" style="background:#fff1f2; color:var(--danger); border:none; padding:10px; border-radius:10px; cursor:pointer;">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
+                                        <button type="button" onclick="hapusSiswa(<?= $id_s; ?>)" style="background:none; border:none; color:var(--danger); cursor:pointer;"><i class="fas fa-trash"></i></button>
                                     </td>
                                 </tr>
                             <?php endwhile; ?>
                         </tbody>
                     </table>
                 </div>
-                <button type="submit" class="btn-save" style="margin-top:30px;">
-                    <i class="fas fa-save"></i> Simpan Presensi Hari Ini
-                </button>
+                <button type="submit" class="btn-save" style="margin-top:20px;"><i class="fas fa-save"></i> Simpan Presensi Hari Ini</button>
             </form>
+        </div>
+
+        <div class="main-card" style="border-top: 5px solid var(--danger);">
+            <h3 style="margin-bottom:20px;"><i class="fas fa-history"></i> Rekap Ketidakhadiran Siswa</h3>
+            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 15px;">
+                <?php foreach ($riwayat_data as $nama => $rows): if (!empty($rows)): ?>
+                        <div style="padding:15px; background:#fef2f2; border-radius:15px; border:1px solid #fee2e2;">
+                            <div style="font-weight:800; font-size:0.9rem; margin-bottom:8px; color:#991b1b;"><?= htmlspecialchars($nama); ?></div>
+                            <div style="display:flex; flex-direction:column; gap:5px;">
+                                <?php foreach ($rows as $r):
+                                    $color = ($r['status'] == 'alfa') ? '#ef4444' : (($r['status'] == 'sakit') ? '#fbbf24' : '#3b82f6');
+                                ?>
+                                    <div style="font-size:0.75rem; color:#4b5563; display:flex; align-items:center; gap:8px;">
+                                        <span style="background:<?= $color; ?>; color:white; width:18px; height:18px; display:flex; align-items:center; justify-content:center; border-radius:4px; font-weight:bold; font-size:0.65rem;">
+                                            <?= strtoupper(substr($r['status'], 0, 1)); ?>
+                                        </span>
+                                        <span><?= tgl_indo($r['tanggal']); ?></span>
+                                    </div>
+                                <?php endforeach; ?>
+                            </div>
+                        </div>
+                <?php endif;
+                endforeach; ?>
+            </div>
+            <?php if (empty(array_filter($riwayat_data))) echo "<p style='color:#94a3b8; font-style:italic; text-align:center;'>Semua siswa memiliki catatan kehadiran yang bersih (100% Hadir).</p>"; ?>
         </div>
     </div>
 
     <div id="modalLaporan" class="modal-overlay hidden">
         <div class="main-card modal-content">
-            <h3><i class="fas fa-bullhorn"></i> Laporan Pembina</h3>
-            <div style="overflow-x:auto; margin-top:20px;">
+            <h3>Laporan Pembina</h3>
+            <div style="overflow-x:auto;">
                 <table>
                     <thead>
                         <tr>
                             <th>Nama</th>
                             <th>Status</th>
-                            <th>Ket.</th>
+                            <th>Tanggal</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <?php
-                        mysqli_data_seek($res_laporan, 0);
-                        if ($jml_laporan > 0):
-                            while ($l = mysqli_fetch_assoc($res_laporan)): ?>
-                                <tr>
-                                    <td><?= htmlspecialchars($l['nama']); ?></td>
-                                    <td><b style="color:var(--danger)"><?= strtoupper($l['status']); ?></b></td>
-                                    <td><?= htmlspecialchars($l['keterangan']); ?></td>
-                                </tr>
-                            <?php endwhile;
-                        else: ?>
+                        <?php mysqli_data_seek($res_laporan, 0);
+                        while ($l = mysqli_fetch_assoc($res_laporan)): ?>
                             <tr>
-                                <td colspan="3" align="center">Tidak ada laporan ketidakhadiran.</td>
+                                <td><?= htmlspecialchars($l['nama']); ?></td>
+                                <td><b style="color:var(--danger)"><?= strtoupper($l['status']); ?></b></td>
+                                <td><?= tgl_indo($tgl_hari_ini); ?></td>
                             </tr>
-                        <?php endif; ?>
+                        <?php endwhile; ?>
                     </tbody>
                 </table>
             </div>
-            <button onclick="toggleLaporan()" class="btn-save" style="background:#64748b; margin-top:20px;">Tutup</button>
+            <button onclick="toggleLaporan()" class="btn-save" style="background:#64748b; margin-top:15px;">Tutup</button>
         </div>
     </div>
 
     <script>
-        // Logika Notifikasi SweetAlert dari PHP
         <?php if (isset($_SESSION['notif'])): ?>
             Swal.fire({
-                icon: '<?= $_SESSION['notif_type'] ?? "success"; ?>',
-                title: 'Informasi',
+                icon: '<?= $_SESSION['notif_type']; ?>',
+                title: 'Info',
                 text: '<?= $_SESSION['notif']; ?>',
-                timer: 3000,
+                timer: 2000,
                 showConfirmButton: false,
                 toast: true,
-                position: 'top-end',
-                timerProgressBar: true
+                position: 'top-end'
             });
-            <?php unset($_SESSION['notif']); unset($_SESSION['notif_type']); ?>
+            <?php unset($_SESSION['notif'], $_SESSION['notif_type']); ?>
         <?php endif; ?>
 
-        // Menangani status dari URL (Setelah hapus)
-        const urlParams = new URLSearchParams(window.location.search);
-        if (urlParams.get('status') === 'deleted') {
-            Swal.fire({
-                icon: 'success',
-                title: 'Terhapus!',
-                text: 'Siswa berhasil dihapus dari sistem.',
-                toast: true,
-                position: 'top-end',
-                showConfirmButton: false,
-                timer: 3000
-            });
-            window.history.replaceState({}, document.title, window.location.pathname);
-        }
-
         function toggleAturSiswa() {
-            const section = document.getElementById("sectionAturSiswa");
-            section.classList.toggle("hidden");
-            if (!section.classList.contains("hidden")) {
-                section.scrollIntoView({ behavior: 'smooth' });
-            }
+            document.getElementById("sectionAturSiswa").classList.toggle("hidden");
         }
 
         function toggleLaporan() {
@@ -480,42 +532,24 @@ $jml_laporan = mysqli_num_rows($res_laporan);
             let input = document.getElementById("searchInput").value.toUpperCase();
             let tr = document.getElementById("siswaTable").getElementsByTagName("tr");
             for (let i = 1; i < tr.length; i++) {
-                let tdName = tr[i].getElementsByTagName("td")[1];
-                if (tdName) {
-                    tr[i].style.display = (tdName.textContent || tdName.innerText).toUpperCase().indexOf(input) > -1 ? "" : "none";
-                }
+                let td = tr[i].getElementsByTagName("td")[1];
+                if (td) tr[i].style.display = td.innerText.toUpperCase().indexOf(input) > -1 ? "" : "none";
             }
         }
 
-        // FUNGSI HAPUS GG
         function hapusSiswa(id) {
             Swal.fire({
-                title: 'Yakin hapus siswa?',
-                text: "Seluruh riwayat absen siswa ini juga akan ikut terhapus!",
+                title: 'Hapus?',
+                text: "Data & riwayat akan hilang!",
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonColor: '#ef4444',
-                cancelButtonColor: '#64748b',
-                confirmButtonText: 'Ya, Hapus!',
-                cancelButtonText: 'Batal',
-                customClass: {
-                    popup: 'swal2-modern-round',
-                    confirmButton: 'btn-confirm-gg',
-                    cancelButton: 'btn-cancel-gg'
-                },
-                showClass: { popup: 'animate__animated animate__fadeInUp animate__faster' },
-                hideClass: { popup: 'animate__animated animate__fadeOutDown animate__faster' }
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    Swal.fire({
-                        title: 'Memproses...',
-                        allowOutsideClick: false,
-                        didOpen: () => { Swal.showLoading() }
-                    });
-                    window.location.href = 'hapus_siswa.php?id=' + id;
-                }
-            })
+                confirmButtonText: 'Ya, Hapus!'
+            }).then((res) => {
+                if (res.isConfirmed) window.location.href = 'hapus_siswa.php?id=' + id;
+            });
         }
     </script>
 </body>
+
 </html>
