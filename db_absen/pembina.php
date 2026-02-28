@@ -1,5 +1,5 @@
 <?php
-// 1. Inisialisasi Session & Koneksi (Harus di paling atas)
+// 1. Inisialisasi Session & Koneksi
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
@@ -35,7 +35,6 @@ if (isset($_POST['kirim_laporan'])) {
     if ($data_siswa = mysqli_fetch_assoc($cari_siswa)) {
         $id_siswa = $data_siswa['id'];
 
-        // Cek duplikasi di hari yang sama
         $cek = mysqli_query($conn, "SELECT id FROM absensi WHERE id_siswa = '$id_siswa' AND tanggal = '$tgl'");
 
         if (mysqli_num_rows($cek) > 0) {
@@ -45,8 +44,18 @@ if (isset($_POST['kirim_laporan'])) {
         }
 
         if (mysqli_query($conn, $q)) {
-            $_SESSION['notif'] = "Berhasil memperbarui data $nama_input";
+            $_SESSION['notif_swal'] = [
+                'type' => 'success',
+                'title' => 'Berhasil!',
+                'text' => "Laporan untuk $nama_input telah disimpan."
+            ];
         }
+    } else {
+        $_SESSION['notif_swal'] = [
+            'type' => 'error',
+            'title' => 'Gagal!',
+            'text' => "Nama siswa tidak ditemukan di database."
+        ];
     }
     header("Location: pembina.php");
     exit;
@@ -55,7 +64,13 @@ if (isset($_POST['kirim_laporan'])) {
 // 5. Fitur Hapus
 if (isset($_GET['hapus'])) {
     $id_hapus = mysqli_real_escape_string($conn, $_GET['hapus']);
-    mysqli_query($conn, "DELETE FROM absensi WHERE id = '$id_hapus'");
+    if (mysqli_query($conn, "DELETE FROM absensi WHERE id = '$id_hapus'")) {
+        $_SESSION['notif_swal'] = [
+            'type' => 'success',
+            'title' => 'Terhapus!',
+            'text' => "Data laporan telah dihapus."
+        ];
+    }
     header("Location: pembina.php");
     exit;
 }
@@ -70,6 +85,8 @@ if (isset($_GET['hapus'])) {
     <title>Portal Pembina | E-Absensi</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
     <style>
         :root {
             --primary: #064e3b;
@@ -127,6 +144,8 @@ if (isset($_GET['hapus'])) {
             outline: none;
             transition: 0.3s;
             box-sizing: border-box;
+            font-family: inherit;
+            font-weight: 600;
         }
 
         .input-style:focus {
@@ -160,9 +179,9 @@ if (isset($_GET['hapus'])) {
             background: white;
             padding: 25px;
             border-radius: 20px;
-            position: relative;
             border: 1px solid #e2e8f0;
             transition: 0.3s;
+            position: relative;
         }
 
         .card-item:hover {
@@ -210,6 +229,10 @@ if (isset($_GET['hapus'])) {
             display: flex;
             align-items: center;
             gap: 5px;
+            cursor: pointer;
+            border: none;
+            background: none;
+            padding: 0;
         }
 
         @media (max-width: 900px) {
@@ -238,17 +261,18 @@ if (isset($_GET['hapus'])) {
     <div class="main-wrapper">
         <div class="container">
             <div class="glass-card">
-                <h3 style="margin:0 0 20px; color:var(--primary); font-weight:800;"><i class="fas fa-edit"></i> Laporan Santri Tidak Hadir</h3>
+                <h3 style="margin:0 0 20px; color:var(--primary); font-weight:800;"><i class="fas fa-edit"></i> Laporan Siswa Tidak Hadir</h3>
                 <form action="" method="POST" autocomplete="off">
                     <div class="form-row">
                         <div class="input-box">
-                            <label style="font-size: 0.7rem; font-weight: 800; color: #94a3b8; text-transform: uppercase;">Nama Santri</label>
+                            <label style="font-size: 0.7rem; font-weight: 800; color: #94a3b8; text-transform: uppercase;">Nama Siswa</label>
                             <input type="text" name="nama_siswa" list="siswaList" class="input-style" placeholder="Cari nama..." required>
                             <datalist id="siswaList">
                                 <?php
-                                $res = mysqli_query($conn, "SELECT nama, kelas, jurusan FROM siswas ORDER BY nama ASC");
+                                $res = mysqli_query($conn, "SELECT nama, kelas, jurusan, nomor_kelas FROM siswas ORDER BY nama ASC");
                                 while ($r = mysqli_fetch_assoc($res)) {
-                                    echo "<option value='" . htmlspecialchars($r['nama']) . "'>Kelas " . $r['kelas'] . " (" . $r['jurusan'] . ")</option>";
+                                    $format_kelas = $r['kelas'] . " " . $r['jurusan'] . " " . $r['nomor_kelas'];
+                                    echo "<option value='" . htmlspecialchars($r['nama']) . "'>" . $format_kelas . "</option>";
                                 }
                                 ?>
                             </datalist>
@@ -274,7 +298,7 @@ if (isset($_GET['hapus'])) {
             <div class="rekap-grid">
                 <?php
                 $today = date('Y-m-d');
-                $q = mysqli_query($conn, "SELECT a.*, s.nama, s.kelas, s.jurusan 
+                $q = mysqli_query($conn, "SELECT a.*, s.nama, s.kelas, s.jurusan, s.nomor_kelas 
                                           FROM absensi a JOIN siswas s ON a.id_siswa = s.id 
                                           WHERE a.tanggal = '$today' AND a.status != 'hadir' 
                                           ORDER BY a.id DESC");
@@ -284,15 +308,17 @@ if (isset($_GET['hapus'])) {
                         <div class="card-item">
                             <span class="badge <?= $row['status']; ?>"><?= $row['status']; ?></span>
                             <h4 style="margin:0; color:var(--primary); font-weight:800;"><?= htmlspecialchars($row['nama']); ?></h4>
-                            <small style="color:#64748b; font-weight:700;">Kelas <?= $row['kelas']; ?> | <?= $row['jurusan']; ?></small>
+                            <small style="color:#64748b; font-weight:700;">
+                                <?= $row['kelas']; ?> <?= $row['jurusan']; ?> <?= $row['nomor_kelas']; ?>
+                            </small>
 
                             <div class="note-box">
                                 <strong>Ket:</strong> <?= !empty($row['keterangan']) ? htmlspecialchars($row['keterangan']) : '<i>Tidak ada rincian</i>'; ?>
                             </div>
 
-                            <a href="pembina.php?hapus=<?= $row['id']; ?>" class="btn-del" onclick="return confirm('Hapus data ini?')">
+                            <button type="button" class="btn-del" onclick="konfirmasiHapus(<?= $row['id']; ?>)">
                                 <i class="fas fa-trash-alt"></i> Hapus Laporan
-                            </a>
+                            </button>
                         </div>
                     <?php endwhile;
                 else: ?>
@@ -305,9 +331,41 @@ if (isset($_GET['hapus'])) {
     </div>
 
     <footer style="text-align:center; padding:30px; color:#94a3b8; font-size:0.8rem;">
-        &copy; <?= date('Y'); ?> E-Absensi Digital • Portal Pembina v5.2
+        &copy; <?= date('Y'); ?> E-Absensi Digital • Portal Pembina
     </footer>
 
+    <script>
+        // 1. Fungsi Konfirmasi Hapus SweetAlert
+        function konfirmasiHapus(id) {
+            Swal.fire({
+                title: 'Apakah anda yakin?',
+                text: "Laporan ini akan dihapus secara permanen!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#064e3b',
+                cancelButtonColor: '#ef4444',
+                confirmButtonText: 'Ya, Hapus!',
+                cancelButtonText: 'Batal',
+                borderRadius: '20px'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = 'pembina.php?hapus=' + id;
+                }
+            })
+        }
+
+        // 2. Tampilkan Notifikasi Simpan/Hapus dari Session
+        <?php if (isset($_SESSION['notif_swal'])): ?>
+            Swal.fire({
+                icon: '<?= $_SESSION['notif_swal']['type']; ?>',
+                title: '<?= $_SESSION['notif_swal']['title']; ?>',
+                text: '<?= $_SESSION['notif_swal']['text']; ?>',
+                confirmButtonColor: '#064e3b',
+                timer: 3000
+            });
+            <?php unset($_SESSION['notif_swal']); ?>
+        <?php endif; ?>
+    </script>
 </body>
 
 </html>

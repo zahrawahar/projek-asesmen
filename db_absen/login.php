@@ -216,8 +216,8 @@ if (isset($_POST['login'])) {
 
     <div class="login-card">
         <img src="gambar/logo makn.png" alt="Logo">
-        <h2>E-Absensi</h2>
-        <p class="subtitle">Sistem Absensi Digital Madrasah</p>
+        <h2>SIGAP</h2>
+        <p class="subtitle">Sistem Informasi Guru & Absensi Pelajar</p>
 
         <form method="POST" id="loginForm">
             <div class="input-group">
